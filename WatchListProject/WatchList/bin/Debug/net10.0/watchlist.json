@@ -5,5 +5,12 @@
     "Type": "Movie",
     "Status": "Completed",
     "LastWatchedEpisode": 2
+  },
+  {
+    "Id": "ec8af7eb-9d99-4304-966a-fdd955bcd2df",
+    "Title": "Dexter",
+    "Type": "TVShow",
+    "Status": "InProgress",
+    "LastWatchedEpisode": 3
   }
 ]
