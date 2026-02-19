@@ -1,0 +1,15 @@
+/workspaces/CS690-FinalProject/WatchListProject/WatchList/bin/Debug/net10.0/WatchList
+/workspaces/CS690-FinalProject/WatchListProject/WatchList/bin/Debug/net10.0/WatchList.deps.json
+/workspaces/CS690-FinalProject/WatchListProject/WatchList/bin/Debug/net10.0/WatchList.runtimeconfig.json
+/workspaces/CS690-FinalProject/WatchListProject/WatchList/bin/Debug/net10.0/WatchList.dll
+/workspaces/CS690-FinalProject/WatchListProject/WatchList/bin/Debug/net10.0/WatchList.pdb
+/workspaces/CS690-FinalProject/WatchListProject/WatchList/obj/Debug/net10.0/WatchList.GeneratedMSBuildEditorConfig.editorconfig
+/workspaces/CS690-FinalProject/WatchListProject/WatchList/obj/Debug/net10.0/WatchList.AssemblyInfoInputs.cache
+/workspaces/CS690-FinalProject/WatchListProject/WatchList/obj/Debug/net10.0/WatchList.AssemblyInfo.cs
+/workspaces/CS690-FinalProject/WatchListProject/WatchList/obj/Debug/net10.0/WatchList.csproj.CoreCompileInputs.cache
+/workspaces/CS690-FinalProject/WatchListProject/WatchList/obj/Debug/net10.0/WatchList.sourcelink.json
+/workspaces/CS690-FinalProject/WatchListProject/WatchList/obj/Debug/net10.0/WatchList.dll
+/workspaces/CS690-FinalProject/WatchListProject/WatchList/obj/Debug/net10.0/refint/WatchList.dll
+/workspaces/CS690-FinalProject/WatchListProject/WatchList/obj/Debug/net10.0/WatchList.pdb
+/workspaces/CS690-FinalProject/WatchListProject/WatchList/obj/Debug/net10.0/WatchList.genruntimeconfig.cache
+/workspaces/CS690-FinalProject/WatchListProject/WatchList/obj/Debug/net10.0/ref/WatchList.dll
