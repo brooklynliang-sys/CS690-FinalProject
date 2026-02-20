@@ -3,7 +3,14 @@
     "Id": "ec8af7eb-9d99-4304-966a-fdd955bcd2df",
     "Title": "Dexter",
     "Type": "TVShow",
-    "Status": "InProgress",
+    "Status": "Completed",
     "LastWatchedEpisode": 3
+  },
+  {
+    "Id": "6d2ce08d-8dc8-4af6-a549-997541bea327",
+    "Title": "Westworld",
+    "Type": "TVShow",
+    "Status": "InProgress",
+    "LastWatchedEpisode": 1
   }
 ]
