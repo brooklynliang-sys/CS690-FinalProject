@@ -53,6 +53,7 @@ public class WatchlistManager
     public bool RemoveItemByIndex(int oneBasedIndex)
     {
         int index = oneBasedIndex - 1;
+
         if (index < 0 || index >= _watchlist.Count)
         {
             return false;
@@ -63,9 +64,24 @@ public class WatchlistManager
         return true;
     }
 
+    public bool RemoveItemById(Guid id)
+    {
+        var item = _watchlist.FirstOrDefault(x => x.Id == id);
+
+        if (item is null)
+        {
+            return false;
+        }
+
+        _watchlist.Remove(item);
+        Save();
+        return true;
+    }
+
     public WatchItem? GetItemByIndex(int oneBasedIndex)
     {
         int index = oneBasedIndex - 1;
+
         if (index < 0 || index >= _watchlist.Count)
         {
             return null;
@@ -74,9 +90,29 @@ public class WatchlistManager
         return _watchlist[index];
     }
 
+    public WatchItem? GetItemById(Guid id)
+    {
+        return _watchlist.FirstOrDefault(x => x.Id == id);
+    }
+
     public bool MarkCompleted(int oneBasedIndex)
     {
         var item = GetItemByIndex(oneBasedIndex);
+
+        if (item is null)
+        {
+            return false;
+        }
+
+        item.Status = WatchStatus.Completed;
+        Save();
+        return true;
+    }
+
+    public bool MarkCompletedById(Guid id)
+    {
+        var item = GetItemById(id);
+
         if (item is null)
         {
             return false;
@@ -90,6 +126,28 @@ public class WatchlistManager
     public bool UpdateProgress(int oneBasedIndex, int season, int episode)
     {
         var item = GetItemByIndex(oneBasedIndex);
+
+        if (item is null)
+        {
+            return false;
+        }
+
+        item.LastWatchedSeason = season;
+        item.LastWatchedEpisode = episode;
+
+        if (item.Status != WatchStatus.Completed)
+        {
+            item.Status = WatchStatus.InProgress;
+        }
+
+        Save();
+        return true;
+    }
+
+    public bool UpdateProgressById(Guid id, int season, int episode)
+    {
+        var item = GetItemById(id);
+
         if (item is null)
         {
             return false;
@@ -131,6 +189,29 @@ public class WatchlistManager
     public string GetResumeMessage(int oneBasedIndex)
     {
         var item = GetItemByIndex(oneBasedIndex);
+
+        if (item is null)
+        {
+            return "Item not found.";
+        }
+
+        if (item.LastWatchedSeason.HasValue && item.LastWatchedEpisode.HasValue)
+        {
+            return $"Resume {item.Title} at Season {item.LastWatchedSeason.Value}, Episode {item.LastWatchedEpisode.Value}.";
+        }
+
+        if (item.LastWatchedEpisode.HasValue)
+        {
+            return $"Resume {item.Title} at Episode {item.LastWatchedEpisode.Value}.";
+        }
+
+        return $"No episode progress recorded yet for {item.Title}.";
+    }
+
+    public string GetResumeMessageById(Guid id)
+    {
+        var item = GetItemById(id);
+
         if (item is null)
         {
             return "Item not found.";

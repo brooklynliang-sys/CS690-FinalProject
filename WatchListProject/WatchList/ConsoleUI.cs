@@ -67,6 +67,7 @@ public class ConsoleUI
         var type = PromptEnum<WatchItemType>("Type (Movie/TVShow)");
 
         bool added = _manager.AddItem(title, type, out var message);
+
         Console.WriteLine();
         Console.WriteLine(message);
         Pause();
@@ -104,6 +105,7 @@ public class ConsoleUI
 
         PrintList(items);
         Console.WriteLine();
+
         int index = PromptInt("Choose an item number to update", 1, items.Count);
         var item = items[index - 1];
 
@@ -119,6 +121,7 @@ public class ConsoleUI
         Console.WriteLine();
 
         int action = PromptInt("Select an action", 0, 2);
+
         if (action == 0)
         {
             return;
@@ -128,13 +131,14 @@ public class ConsoleUI
         {
             int season = PromptInt("Enter last watched season number", 1, 1_000_000);
             int episode = PromptInt("Enter last watched episode number", 1, 1_000_000);
-            _manager.UpdateProgress(index, season, episode);
+
+            _manager.UpdateProgressById(item.Id, season, episode);
             Console.WriteLine("\nProgress updated and saved.");
             Pause();
             return;
         }
 
-        _manager.MarkCompleted(index);
+        _manager.MarkCompletedById(item.Id);
         Console.WriteLine("\nMarked completed and saved.");
         Pause();
     }
@@ -154,9 +158,12 @@ public class ConsoleUI
 
         PrintList(items);
         Console.WriteLine();
+
         int index = PromptInt("Choose an item number to view progress", 1, items.Count);
+        var item = items[index - 1];
+
         Console.WriteLine();
-        Console.WriteLine(_manager.GetResumeMessage(index));
+        Console.WriteLine(_manager.GetResumeMessageById(item.Id));
         Pause();
     }
 
@@ -175,11 +182,13 @@ public class ConsoleUI
 
         PrintList(items);
         Console.WriteLine();
+
         int index = PromptInt("Choose an item number to remove", 1, items.Count);
         var item = items[index - 1];
 
         Console.Write($"\nRemove '{item.Title}'? (y/n): ");
         var answer = (Console.ReadLine() ?? string.Empty).Trim().ToLowerInvariant();
+
         if (answer != "y")
         {
             Console.WriteLine("\nCancelled.");
@@ -187,7 +196,7 @@ public class ConsoleUI
             return;
         }
 
-        _manager.RemoveItemByIndex(index);
+        _manager.RemoveItemById(item.Id);
         Console.WriteLine("\nRemoved and saved.");
         Pause();
     }
@@ -196,9 +205,10 @@ public class ConsoleUI
     {
         Console.Clear();
         Console.WriteLine("=== Search by Title ===");
-        string keyword = PromptNonEmpty("Enter title keyword");
 
+        string keyword = PromptNonEmpty("Enter title keyword");
         var results = _manager.SearchByTitle(keyword);
+
         Console.WriteLine();
         if (results.Count == 0)
         {
@@ -215,9 +225,10 @@ public class ConsoleUI
     {
         Console.Clear();
         Console.WriteLine("=== Filter by Status ===");
-        var status = PromptEnum<WatchStatus>("Status (NotStarted/InProgress/Completed)");
 
+        var status = PromptEnum<WatchStatus>("Status (NotStarted/InProgress/Completed)");
         var results = _manager.FilterByStatus(status);
+
         Console.WriteLine();
         if (results.Count == 0)
         {
@@ -232,7 +243,7 @@ public class ConsoleUI
 
     public static string FormatItem(WatchItem item, int itemNumber)
     {
-        return $"{itemNumber}) {item.Title} [{item.Type}]  |  Status: {item.Status}  |  {item.ProgressText}";
+        return $"{itemNumber}) {item.Title} [{item.Type}] | Status: {item.Status} | {item.ProgressText}";
     }
 
     private static void PrintList(List<WatchItem> watchlist)
@@ -249,6 +260,7 @@ public class ConsoleUI
         {
             Console.Write($"{label}: ");
             var input = Console.ReadLine();
+
             if (!string.IsNullOrWhiteSpace(input))
             {
                 return input.Trim();
@@ -264,6 +276,7 @@ public class ConsoleUI
         {
             Console.Write($"{label} ({min}-{max}): ");
             var input = Console.ReadLine();
+
             if (int.TryParse(input, out int value) && value >= min && value <= max)
             {
                 return value;
@@ -279,7 +292,8 @@ public class ConsoleUI
         {
             Console.Write($"{label}: ");
             var input = (Console.ReadLine() ?? string.Empty).Trim();
-            if (Enum.TryParse<T>(input, ignoreCase: true, out var value))
+
+            if (Enum.TryParse(input, ignoreCase: true, out T value))
             {
                 return value;
             }

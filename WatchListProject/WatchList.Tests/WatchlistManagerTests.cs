@@ -1,101 +1,204 @@
-using WatchList;
 using Xunit;
 
 namespace WatchList.Tests;
 
 public class WatchlistManagerTests
 {
-    [Fact]
-    public void AddItem_AddsNewItem_WhenItemDoesNotExist()
+    private static WatchlistManager CreateManager()
     {
-        string fileName = $"test-{Guid.NewGuid()}.json";
-        var storage = new WatchlistStorage(fileName);
-        var manager = new WatchlistManager(storage);
-
-        bool added = manager.AddItem("Dark", WatchItemType.TVShow, out string message);
-
-        Assert.True(added);
-        Assert.Equal("Item added successfully.", message);
-        Assert.Single(manager.GetAllItems());
+        var storage = new WatchlistStorage("test_watchlist.json");
+        storage.Save(new List<WatchItem>());
+        return new WatchlistManager(storage);
     }
 
     [Fact]
-    public void AddItem_RejectsDuplicateTitleAndType()
+    public void AddItem_ShouldAddNewItem()
     {
-        string fileName = $"test-{Guid.NewGuid()}.json";
-        var storage = new WatchlistStorage(fileName);
-        var manager = new WatchlistManager(storage);
+        var manager = CreateManager();
 
-        manager.AddItem("Dark", WatchItemType.TVShow, out _);
-        bool added = manager.AddItem("Dark", WatchItemType.TVShow, out string message);
+        bool result = manager.AddItem("Breaking Bad", WatchItemType.TVShow, out var message);
+        var items = manager.GetAllItems();
 
-        Assert.False(added);
+        Assert.True(result);
+        Assert.Single(items);
+        Assert.Equal("Breaking Bad", items[0].Title);
+        Assert.Equal(WatchItemType.TVShow, items[0].Type);
+        Assert.Equal(WatchStatus.NotStarted, items[0].Status);
+        Assert.Equal("Item added successfully.", message);
+    }
+
+    [Fact]
+    public void AddItem_ShouldRejectDuplicateTitleAndType()
+    {
+        var manager = CreateManager();
+
+        manager.AddItem("Breaking Bad", WatchItemType.TVShow, out _);
+        bool result = manager.AddItem("Breaking Bad", WatchItemType.TVShow, out var message);
+
+        Assert.False(result);
         Assert.Equal("An item with the same title and type already exists.", message);
         Assert.Single(manager.GetAllItems());
     }
 
     [Fact]
-    public void SearchByTitle_ReturnsMatchingItems()
+    public void RemoveItemById_ShouldRemoveCorrectItem()
     {
-        string fileName = $"test-{Guid.NewGuid()}.json";
-        var storage = new WatchlistStorage(fileName);
-        var manager = new WatchlistManager(storage);
+        var manager = CreateManager();
 
-        manager.AddItem("Breaking Bad", WatchItemType.TVShow, out _);
-        manager.AddItem("The Batman", WatchItemType.Movie, out _);
+        manager.AddItem("Zebra Show", WatchItemType.TVShow, out _);
+        manager.AddItem("Alpha Show", WatchItemType.TVShow, out _);
+        manager.AddItem("Moon Movie", WatchItemType.Movie, out _);
 
-        var results = manager.SearchByTitle("Break");
+        var items = manager.GetAllItems();
+        var itemToRemove = items[2]; // choose from displayed sorted list
 
-        Assert.Single(results);
-        Assert.Equal("Breaking Bad", results[0].Title);
+        bool removed = manager.RemoveItemById(itemToRemove.Id);
+        var updatedItems = manager.GetAllItems();
+
+        Assert.True(removed);
+        Assert.DoesNotContain(updatedItems, x => x.Id == itemToRemove.Id);
+        Assert.Equal(2, updatedItems.Count);
     }
 
     [Fact]
-    public void FilterByStatus_ReturnsOnlyMatchingStatus()
+    public void RemoveItemById_ShouldReturnFalse_WhenIdNotFound()
     {
-        string fileName = $"test-{Guid.NewGuid()}.json";
-        var storage = new WatchlistStorage(fileName);
-        var manager = new WatchlistManager(storage);
+        var manager = CreateManager();
+
+        manager.AddItem("Breaking Bad", WatchItemType.TVShow, out _);
+
+        bool removed = manager.RemoveItemById(Guid.NewGuid());
+
+        Assert.False(removed);
+        Assert.Single(manager.GetAllItems());
+    }
+
+    [Fact]
+    public void UpdateProgressById_ShouldUpdateSeasonEpisodeAndStatus()
+    {
+        var manager = CreateManager();
 
         manager.AddItem("Dark", WatchItemType.TVShow, out _);
-        manager.AddItem("Severance", WatchItemType.TVShow, out _);
-        manager.MarkCompleted(2);
+        var item = manager.GetAllItems().First();
+
+        bool updated = manager.UpdateProgressById(item.Id, 2, 5);
+        var updatedItem = manager.GetItemById(item.Id);
+
+        Assert.True(updated);
+        Assert.NotNull(updatedItem);
+        Assert.Equal(2, updatedItem!.LastWatchedSeason);
+        Assert.Equal(5, updatedItem.LastWatchedEpisode);
+        Assert.Equal(WatchStatus.InProgress, updatedItem.Status);
+    }
+
+    [Fact]
+    public void UpdateProgressById_ShouldReturnFalse_WhenIdNotFound()
+    {
+        var manager = CreateManager();
+
+        bool updated = manager.UpdateProgressById(Guid.NewGuid(), 1, 1);
+
+        Assert.False(updated);
+    }
+
+    [Fact]
+    public void MarkCompletedById_ShouldSetStatusToCompleted()
+    {
+        var manager = CreateManager();
+
+        manager.AddItem("Interstellar", WatchItemType.Movie, out _);
+        var item = manager.GetAllItems().First();
+
+        bool marked = manager.MarkCompletedById(item.Id);
+        var updatedItem = manager.GetItemById(item.Id);
+
+        Assert.True(marked);
+        Assert.NotNull(updatedItem);
+        Assert.Equal(WatchStatus.Completed, updatedItem!.Status);
+    }
+
+    [Fact]
+    public void MarkCompletedById_ShouldReturnFalse_WhenIdNotFound()
+    {
+        var manager = CreateManager();
+
+        bool marked = manager.MarkCompletedById(Guid.NewGuid());
+
+        Assert.False(marked);
+    }
+
+    [Fact]
+    public void SearchByTitle_ShouldReturnMatchingItems()
+    {
+        var manager = CreateManager();
+
+        manager.AddItem("Breaking Bad", WatchItemType.TVShow, out _);
+        manager.AddItem("Bad Boys", WatchItemType.Movie, out _);
+        manager.AddItem("Friends", WatchItemType.TVShow, out _);
+
+        var results = manager.SearchByTitle("Bad");
+
+        Assert.Equal(2, results.Count);
+        Assert.All(results, item => Assert.Contains("Bad", item.Title, StringComparison.OrdinalIgnoreCase));
+    }
+
+    [Fact]
+    public void FilterByStatus_ShouldReturnOnlyMatchingStatus()
+    {
+        var manager = CreateManager();
+
+        manager.AddItem("Dark", WatchItemType.TVShow, out _);
+        manager.AddItem("Interstellar", WatchItemType.Movie, out _);
+
+        var items = manager.GetAllItems();
+        manager.MarkCompletedById(items[0].Id);
 
         var results = manager.FilterByStatus(WatchStatus.Completed);
 
         Assert.Single(results);
-        Assert.Equal("Severance", results[0].Title);
+        Assert.Equal(WatchStatus.Completed, results[0].Status);
     }
 
     [Fact]
-    public void UpdateProgress_SetsSeasonEpisodeAndStatus()
+    public void GetResumeMessageById_ShouldReturnSeasonEpisodeMessage()
     {
-        string fileName = $"test-{Guid.NewGuid()}.json";
-        var storage = new WatchlistStorage(fileName);
-        var manager = new WatchlistManager(storage);
+        var manager = CreateManager();
 
         manager.AddItem("Dark", WatchItemType.TVShow, out _);
-        bool updated = manager.UpdateProgress(1, 2, 5);
-        var item = manager.GetItemByIndex(1);
+        var item = manager.GetAllItems().First();
 
-        Assert.True(updated);
-        Assert.NotNull(item);
-        Assert.Equal(2, item!.LastWatchedSeason);
-        Assert.Equal(5, item.LastWatchedEpisode);
-        Assert.Equal(WatchStatus.InProgress, item.Status);
+        manager.UpdateProgressById(item.Id, 3, 7);
+        string message = manager.GetResumeMessageById(item.Id);
+
+        Assert.Equal("Resume Dark at Season 3, Episode 7.", message);
     }
 
     [Fact]
-    public void RemoveItemByIndex_RemovesItemSuccessfully()
+    public void GetResumeMessageById_ShouldReturnNoProgressMessage_WhenNoEpisodeRecorded()
     {
-        string fileName = $"test-{Guid.NewGuid()}.json";
-        var storage = new WatchlistStorage(fileName);
-        var manager = new WatchlistManager(storage);
+        var manager = CreateManager();
 
         manager.AddItem("Dark", WatchItemType.TVShow, out _);
-        bool removed = manager.RemoveItemByIndex(1);
+        var item = manager.GetAllItems().First();
 
-        Assert.True(removed);
-        Assert.Empty(manager.GetAllItems());
+        string message = manager.GetResumeMessageById(item.Id);
+
+        Assert.Equal("No episode progress recorded yet for Dark.", message);
+    }
+
+    [Fact]
+    public void GetAllItems_ShouldReturnItemsSortedByTitle()
+    {
+        var manager = CreateManager();
+
+        manager.AddItem("Zebra", WatchItemType.TVShow, out _);
+        manager.AddItem("Alpha", WatchItemType.TVShow, out _);
+        manager.AddItem("Moon", WatchItemType.Movie, out _);
+
+        var items = manager.GetAllItems();
+
+        Assert.Equal("Alpha", items[0].Title);
+        Assert.Equal("Moon", items[1].Title);
+        Assert.Equal("Zebra", items[2].Title);
     }
 }
