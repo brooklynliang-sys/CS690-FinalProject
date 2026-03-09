@@ -4,6 +4,7 @@
     "Title": "Dexter",
     "Type": "TVShow",
     "Status": "Completed",
+    "LastWatchedSeason": null,
     "LastWatchedEpisode": 3
   },
   {
@@ -11,6 +12,7 @@
     "Title": "Westworld",
     "Type": "TVShow",
     "Status": "InProgress",
+    "LastWatchedSeason": null,
     "LastWatchedEpisode": 1
   }
 ]
