@@ -6,7 +6,7 @@ namespace WatchList.Tests;
 public class ConsoleUITests
 {
     [Fact]
-    public void FormatItem_IncludesSeasonEpisodeWhenPresent()
+    public void FormatItem_ForTVShow_IncludesSeasonEpisodeWhenPresent()
     {
         var item = new WatchItem
         {
@@ -23,6 +23,22 @@ public class ConsoleUITests
         Assert.Contains("TVShow", result);
         Assert.Contains("InProgress", result);
         Assert.Contains("S2 Ep 4", result);
+    }
+
+    [Fact]
+    public void FormatItem_ForMovie_ShowsStartedWhenInProgress()
+    {
+        var item = new WatchItem
+        {
+            Title = "The Batman",
+            Type = WatchItemType.Movie,
+            Status = WatchStatus.InProgress
+        };
+
+        string result = ConsoleUI.FormatItem(item, 1);
+
+        Assert.Contains("Movie", result);
+        Assert.Contains("Started", result);
     }
 
     [Fact]

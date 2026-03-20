@@ -29,6 +29,16 @@ public class WatchItem
     {
         get
         {
+            if (Type == WatchItemType.Movie)
+            {
+                return Status switch
+                {
+                    WatchStatus.Completed => "Finished",
+                    WatchStatus.InProgress => "Started",
+                    _ => "No progress"
+                };
+            }
+
             if (LastWatchedSeason.HasValue && LastWatchedEpisode.HasValue)
             {
                 return $"S{LastWatchedSeason.Value} Ep {LastWatchedEpisode.Value}";

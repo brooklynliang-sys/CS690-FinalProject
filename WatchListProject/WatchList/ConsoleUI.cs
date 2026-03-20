@@ -66,7 +66,7 @@ public class ConsoleUI
         string title = PromptNonEmpty("Title");
         var type = PromptEnum<WatchItemType>("Type (Movie/TVShow)");
 
-        bool added = _manager.AddItem(title, type, out var message);
+        _manager.AddItem(title, type, out var message);
 
         Console.WriteLine();
         Console.WriteLine(message);
@@ -115,31 +115,58 @@ public class ConsoleUI
         Console.WriteLine($"Current Status: {item.Status}");
         Console.WriteLine($"Current Progress: {item.ProgressText}");
         Console.WriteLine();
-        Console.WriteLine("1) Update season and episode");
-        Console.WriteLine("2) Mark as completed");
+
+        if (item.Type == WatchItemType.TVShow)
+        {
+            Console.WriteLine("1) Update season and episode");
+            Console.WriteLine("2) Mark as completed");
+            Console.WriteLine("0) Cancel");
+            Console.WriteLine();
+
+            int action = PromptInt("Select an action", 0, 2);
+            if (action == 0)
+            {
+                return;
+            }
+
+            if (action == 1)
+            {
+                int season = PromptInt("Enter last watched season number", 1, 1_000_000);
+                int episode = PromptInt("Enter last watched episode number", 1, 1_000_000);
+
+                _manager.UpdateProgressById(item.Id, season, episode);
+                Console.WriteLine("\nProgress updated and saved.");
+                Pause();
+                return;
+            }
+
+            _manager.MarkCompletedById(item.Id);
+            Console.WriteLine("\nMarked completed and saved.");
+            Pause();
+            return;
+        }
+
+        Console.WriteLine("1) Mark movie as in progress");
+        Console.WriteLine("2) Mark movie as completed");
         Console.WriteLine("0) Cancel");
         Console.WriteLine();
 
-        int action = PromptInt("Select an action", 0, 2);
-
-        if (action == 0)
+        int movieAction = PromptInt("Select an action", 0, 2);
+        if (movieAction == 0)
         {
             return;
         }
 
-        if (action == 1)
+        if (movieAction == 1)
         {
-            int season = PromptInt("Enter last watched season number", 1, 1_000_000);
-            int episode = PromptInt("Enter last watched episode number", 1, 1_000_000);
-
-            _manager.UpdateProgressById(item.Id, season, episode);
-            Console.WriteLine("\nProgress updated and saved.");
+            _manager.MarkInProgressById(item.Id);
+            Console.WriteLine("\nMovie marked in progress and saved.");
             Pause();
             return;
         }
 
         _manager.MarkCompletedById(item.Id);
-        Console.WriteLine("\nMarked completed and saved.");
+        Console.WriteLine("\nMovie marked completed and saved.");
         Pause();
     }
 
@@ -198,6 +225,19 @@ public class ConsoleUI
 
         _manager.RemoveItemById(item.Id);
         Console.WriteLine("\nRemoved and saved.");
+
+        var updatedItems = _manager.GetAllItems();
+        Console.WriteLine();
+        Console.WriteLine("Updated watch list:");
+        if (updatedItems.Count == 0)
+        {
+            Console.WriteLine("No items remaining.");
+        }
+        else
+        {
+            PrintList(updatedItems);
+        }
+
         Pause();
     }
 
